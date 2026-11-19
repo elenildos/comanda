@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espetinho das Meninas — Comanda Fácil Pro</title>
+<style>
+:root{--bg:#f3f5f8;--panel:#fff;--ink:#172033;--muted:#697386;--line:#e5e9f0;--brand:#146c5a;--brand2:#0d5144;--red:#c43b45;--gold:#f4b942;--shadow:0 8px 24px #18243a0d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+header{background:#102b2a;color:white;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:22px}header small{color:#c5d9d5}.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:650;cursor:pointer;background:var(--brand);color:#fff}
+button:hover,.btn:hover{filter:brightness(.94)}button.secondary{background:#edf2f5;color:#263447}button.danger{background:#fff0f0;color:var(--red)}button.dark{background:#23413d}
+main{max-width:1200px;margin:22px auto;padding:0 16px}.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:18px}.tab{background:#e6ecef;color:#40515d;white-space:nowrap}.tab.active{background:var(--brand);color:#fff}
+.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.stat,.panel,.table-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.stat{padding:16px}.stat span{color:var(--muted);font-size:13px}.stat strong{display:block;font-size:25px;margin-top:5px}
+.panel{padding:18px;margin-bottom:16px}.panel h2{font-size:18px;margin:0 0 14px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.table-card{padding:15px;text-align:left;color:var(--ink);min-height:118px;background:white}.table-card.open{border:2px solid #e6a83b}.table-card strong{display:block;font-size:18px}.table-card small{color:var(--muted)}.table-card .amount{font-weight:750;color:var(--brand);margin-top:8px}
+.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px}.field label{font-size:12px;color:var(--muted);font-weight:650}.field input,.field select,.field textarea{width:100%;border:1px solid #d9e0e8;border-radius:8px;padding:10px;background:#fff;color:var(--ink);font:inherit}.field textarea{min-height:65px}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:9px}.menu-item{border:1px solid var(--line);background:#fbfcfd;border-radius:10px;padding:11px;text-align:left;color:var(--ink)}.menu-item strong{display:block}.menu-item small{color:var(--brand);font-weight:700}
+table{width:100%;border-collapse:collapse}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}th{font-size:12px;color:var(--muted)}td:last-child,th:last-child{text-align:right}.total{display:flex;justify-content:space-between;font-size:20px;font-weight:800;padding-top:13px}
+.muted{color:var(--muted)}.pill{display:inline-block;background:#e8f4f0;color:#17624f;border-radius:20px;padding:3px 8px;font-size:12px;font-weight:700}.empty{text-align:center;color:var(--muted);padding:25px}
+.actions{display:flex;gap:7px;flex-wrap:wrap}.hidden{display:none!important}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}header{padding:15px}main{margin:14px auto}.panel{padding:13px}th,td{padding:8px 5px;font-size:13px}}
+@media print{body{background:white}.no-print,header,.tabs{display:none!important}main{margin:0;padding:0}.page{display:none!important}#printArea{display:block!important}.panel{box-shadow:none;border:0}}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>🍢 Espetinho das Meninas</h1><small>Controle de mesas, pedidos e faturamento · edição térmica 58 mm</small></div>
+ <div class="top-actions"><button class="secondary" onclick="backup()">Exportar backup</button><button class="secondary" onclick="document.getElementById('restoreFile').click()">Restaurar backup</button><input id="restoreFile" type="file" accept=".json" class="hidden" onchange="restore(event)"></div>
+</header>
+<main>
+ <nav class="tabs no-print">
+  <button class="tab active" data-page="mesas">Mesas e comandas</button>
+  <button class="tab" data-page="cardapio">Cardápio</button>
+  <button class="tab" data-page="relatorios">Faturamento</button>
+  <button class="tab" data-page="config">Configurações</button>
+ </nav>
+ <section id="mesas" class="page active">
+  <div class="section-head"><div><h2>Mesas</h2><span class="muted">Toque em uma mesa para lançar ou consultar pedidos.</span></div><button onclick="addTable()">＋ Nova mesa</button></div>
+  <div id="tableGrid" class="tables"></div>
+ </section>
+ <section id="comanda" class="page">
+  <div class="section-head"><div><h2 id="orderTitle">Comanda</h2><span id="orderStatus" class="pill">Aberta</span></div><button class="secondary" onclick="showPage('mesas')">← Voltar às mesas</button></div>
+  <div class="panel">
+   <h2>Adicionar pedido</h2>
+   <div class="field" style="margin-bottom:12px"><label>Escolha um produto do cardápio</label><div id="menuButtons" class="menu-grid"></div></div>
+   <div class="row">
+    <div class="field"><label>Produto</label><input id="customName" placeholder="Ou digite um item"></div>
+    <div class="field" style="max-width:110px"><label>Quantidade</label><input id="qty" type="number" min="1" value="1"></div>
+    <div class="field" style="max-width:140px"><label>Preço unitário (R$)</label><input id="price" type="number" min="0" step=".01" placeholder="0,00"></div>
+    <button onclick="addOrderItem()">Adicionar item</button>
+   </div>
+   <div class="field" style="margin-top:10px"><label>Observação / personalização</label><input id="note" placeholder="Ex.: sem cebola, ponto da carne..."></div>
+  </div>
+  <div class="panel">
+   <div class="section-head"><h2>Itens da comanda</h2><button class="secondary" onclick="printKitchen()">Imprimir pedido / cozinha</button></div>
+   <div id="orderItems"></div><div class="total"><span>Total parcial</span><span id="orderTotal">R$ 0,00</span></div>
+  </div>
+  <div class="panel">
+   <h2>Fechar conta</h2>
+   <div class="row">
+    <div class="field"><label>Forma de pagamento</label><select id="payment"><option>Pix</option><option>Dinheiro</option><option>Cartão de débito</option><option>Cartão de crédito</option><option>Outro</option></select></div>
+    <div class="field"><label>Desconto (R$)</label><input id="discount" type="number" min="0" step=".01" value="0"></div>
+    <div class="field"><label>Taxa de serviço (R$)</label><input id="service" type="number" min="0" step=".01" value="0"></div>
+    <button onclick="closeOrder()">Fechar conta e registrar venda</button>
+   </div>
+   <p class="muted">Ao fechar, a venda entra no relatório do dia e a mesa fica livre.</p>
+  </div>
+ </section>
+ <section id="cardapio" class="page">
+  <div class="section-head"><div><h2>Cardápio / produtos</h2><span class="muted">Cadastre os itens e preços do seu estabelecimento.</span></div></div>
+  <div class="panel">
+   <div class="row"><div class="field"><label>Nome do produto</label><input id="newProduct" placeholder="Ex.: Refrigerante lata"></div><div class="field"><label>Preço (R$)</label><input id="newPrice" type="number" min="0" step=".01" placeholder="6,00"></div><button onclick="saveProduct()">＋ Cadastrar</button></div>
+  </div>
+  <div class="panel"><div id="productList"></div></div>
+ </section>
+ <section id="relatorios" class="page">
+  <div class="section-head"><div><h2>Faturamento</h2><span class="muted">Vendas registradas ao fechar as comandas.</span></div><button onclick="printReport()">Imprimir relatório</button></div>
+  <div class="panel">
+   <div class="row"><div class="field" style="max-width:230px"><label>Data do relatório</label><input id="reportDate" type="date" onchange="renderReport()"></div><button class="secondary" onclick="exportCSV()">Exportar vendas em CSV</button></div>
+  </div>
+  <div class="grid" style="margin-bottom:16px">
+   <div class="stat"><span>Faturamento bruto</span><strong id="gross">R$ 0,00</strong></div>
+   <div class="stat"><span>Descontos</span><strong id="discountTotal">R$ 0,00</strong></div>
+   <div class="stat"><span>Vendas / comandas</span><strong id="salesCount">0</strong></div>
+   <div class="stat"><span>Ticket médio</span><strong id="average">R$ 0,00</strong></div>
+  </div>
+  <div class="panel"><h2>Vendas do dia</h2><div id="salesList"></div><div class="total"><span>Total líquido</span><span id="net">R$ 0,00</span></div></div>
+  <div class="panel"><h2>Totais por forma de pagamento</h2><div id="paymentTotals"></div></div>
+ </section>
+ <section id="config" class="page">
+  <div class="panel"><h2>Dados do estabelecimento</h2><div class="row"><div class="field"><label>Nome do bar / restaurante</label><input id="businessName" placeholder="Espetinho das Meninas"></div><div class="field"><label>Quantidade inicial de mesas</label><input id="tableCount" type="number" min="1" max="100"></div><button onclick="saveSettings()">Salvar configurações</button></div><p class="muted">O nome aparece nos comprovantes impressos.</p></div>
+  <div class="panel"><h2>Impressora térmica — bobina 58 mm</h2><p>O comprovante foi formatado para bobina térmica de 58 mm, com área útil aproximada de 48 mm. No notebook, instale o driver da impressora, selecione-a na janela de impressão e configure papel de 58 mm, margens mínimas e escala 100% (ou tamanho real). Desative cabeçalhos e rodapés do navegador.</p><p><b>Importante:</b> por segurança dos navegadores, esta versão abre a janela de impressão para você confirmar. Impressão automática sem confirmação exige integração local específica da marca/modelo da impressora.</p><button class="secondary" onclick="window.print()">Testar impressão</button></div>
+  <div class="panel"><h2>Importante: seus dados</h2><p>Os dados ficam salvos neste navegador e neste notebook. Não limpe os dados do navegador sem antes exportar um backup. Use “Exportar backup” regularmente para guardar uma cópia.</p></div>
+ </section>
+ <section id="printArea" class="hidden"></section>
+</main>
+<script>
+const KEY='comanda_facil_v1';
+const today=()=>new Date().toLocaleDateString('en-CA');
+const money=n=>(Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+let data=JSON.parse(localStorage.getItem(KEY)||'null')||{business:'Espetinho das Meninas',tables:Array.from({length:12},(_,i)=>({id:i+1,name:'Mesa '+(i+1),items:[]})),products:[{name:'Água',price:3},{name:'Refrigerante',price:6},{name:'Cerveja',price:9},{name:'Suco',price:8},{name:'Porção',price:25}],sales:[]};
+let current=null;
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.page===id));if(id==='mesas')renderTables();if(id==='cardapio')renderProducts();if(id==='relatorios')renderReport()}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showPage(t.dataset.page));
+function renderTables(){document.getElementById('tableGrid').innerHTML=data.tables.map(t=>`<button class="table-card ${t.items.length?'open':''}" onclick="openTable(${t.id})"><strong>${esc(t.name)}</strong><small>${t.items.length?'Em atendimento':'Livre'}</small><div class="amount">${money(t.items.reduce((s,x)=>s+x.qty*x.price,0))}</div></button>`).join('')}
+function addTable(){let id=Math.max(0,...data.tables.map(t=>t.id))+1;data.tables.push({id,name:'Mesa '+id,items:[]});save();renderTables()}
+function openTable(id){const selected=data.tables.find(t=>t.id===id);if(!selected)return;current=id;save();showPage('comanda');renderOrder()}
+function table(){return data.tables.find(t=>t.id===current)}
+function renderOrder(){let t=table();if(!t)return;document.getElementById('orderTitle').textContent=t.name;document.getElementById('orderStatus').textContent='Comanda aberta';document.getElementById('menuButtons').innerHTML=data.products.map((p,i)=>`<button class="menu-item" onclick="chooseProduct(${i})"><strong>${esc(p.name)}</strong><small>${money(p.price)}</small></button>`).join('');document.getElementById('orderItems').innerHTML=t.items.length?`<table><thead><tr><th>Item</th><th>Qtd.</th><th>Unit.</th><th>Subtotal</th><th></th></tr></thead><tbody>${t.items.map((x,i)=>`<tr><td>${esc(x.name)}${x.note?`<br><small class="muted">${esc(x.note)}</small>`:''}</td><td>${x.qty}</td><td>${money(x.price)}</td><td>${money(x.qty*x.price)}</td><td><button class="danger" onclick="removeItem(${i})">Excluir</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nenhum pedido lançado nesta mesa.</div>';document.getElementById('orderTotal').textContent=money(t.items.reduce((s,x)=>s+x.qty*x.price,0))}
+function chooseProduct(i){let p=data.products[i];document.getElementById('customName').value=p.name;document.getElementById('price').value=p.price;document.getElementById('qty').value=1}
+function addOrderItem(){let name=document.getElementById('customName').value.trim(),qty=Number(document.getElementById('qty').value),price=Number(document.getElementById('price').value),note=document.getElementById('note').value.trim();if(!name||qty<1||price<0||!Number.isFinite(price)){alert('Informe produto, quantidade e preço válido.');return}let items=table().items;let existing=items.find(x=>x.name.trim().toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')&&Number(x.price)===price&&(x.note||'').trim().toLocaleLowerCase('pt-BR')===note.toLocaleLowerCase('pt-BR'));if(existing){existing.qty=Number(existing.qty)+qty}else{items.push({name,qty,price,note})}['customName','price','note'].forEach(id=>document.getElementById(id).value='');document.getElementById('qty').value=1;save();renderOrder()}
+function removeItem(i){table().items.splice(i,1);save();renderOrder()}
+function closeOrder(){let t=table();if(!t.items.length){alert('Adicione pelo menos um item antes de fechar a conta.');return}let subtotal=t.items.reduce((s,x)=>s+x.qty*x.price,0),discount=Math.max(0,Number(document.getElementById('discount').value)||0),service=Math.max(0,Number(document.getElementById('service').value)||0);if(discount>subtotal+service){alert('O desconto não pode ser maior que o subtotal mais a taxa.');return}let sale={date:today(),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),table:t.name,items:t.items.map(x=>({...x})),subtotal,discount,service,total:subtotal-discount+service,payment:document.getElementById('payment').value};if(!confirm(`Fechar ${t.name} no valor de ${money(sale.total)}?`))return;data.sales.push(sale);t.items=[];save();printReceipt(sale);showPage('mesas')}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderProducts(){document.getElementById('productList').innerHTML=data.products.length?`<table><thead><tr><th>Produto</th><th>Preço</th><th></th></tr></thead><tbody>${data.products.map((p,i)=>`<tr><td>${esc(p.name)}</td><td>${money(p.price)}</td><td><button class="danger" onclick="deleteProduct(${i})">Excluir</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nenhum produto cadastrado.</div>'}
+function saveProduct(){let name=document.getElementById('newProduct').value.trim(),price=Number(document.getElementById('newPrice').value);if(!name||!Number.isFinite(price)||price<0){alert('Informe nome e preço válido.');return}data.products.push({name,price});save();document.getElementById('newProduct').value='';document.getElementById('newPrice').value='';renderProducts()}
+function deleteProduct(i){if(confirm('Excluir este produto do cardápio?')){data.products.splice(i,1);save();renderProducts()}}
+function renderReport(){let date=document.getElementById('reportDate').value||today();document.getElementById('reportDate').value=date;let sales=data.sales.filter(s=>s.date===date),gross=sales.reduce((a,s)=>a+s.subtotal+s.service,0),discount=sales.reduce((a,s)=>a+s.discount,0),net=sales.reduce((a,s)=>a+s.total,0);document.getElementById('gross').textContent=money(gross);document.getElementById('discountTotal').textContent=money(discount);document.getElementById('salesCount').textContent=sales.length;document.getElementById('average').textContent=money(sales.length?net/sales.length:0);document.getElementById('net').textContent=money(net);document.getElementById('salesList').innerHTML=sales.length?`<table><thead><tr><th>Hora</th><th>Mesa</th><th>Pagamento</th><th>Total</th></tr></thead><tbody>${sales.map(s=>`<tr><td>${s.time}</td><td>${esc(s.table)}</td><td>${esc(s.payment)}</td><td>${money(s.total)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nenhuma venda registrada nesta data.</div>';let by={};sales.forEach(s=>by[s.payment]=(by[s.payment]||0)+s.total);document.getElementById('paymentTotals').innerHTML=Object.keys(by).length?`<table><tbody>${Object.entries(by).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${money(v)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Sem pagamentos registrados.</div>'}
+function printDoc(html){
+ let w=window.open('','_blank','width=380,height=700');
+ if(!w){alert('Permita janelas pop-up para imprimir.');return}
+ w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Comprovante</title>
+ <style>
+ @page{size:58mm auto;margin:2mm}
+ *{box-sizing:border-box}
+ body{width:48mm;margin:0 auto;font:11px/1.35 Arial,sans-serif;color:#000}
+ h2{font-size:15px;text-align:center;margin:0 0 5px}
+ h3{font-size:13px;margin:8px 0 4px}
+ p{margin:4px 0}
+ table{width:100%;border-collapse:collapse;table-layout:fixed}
+ td,th{padding:3px 1px;border-bottom:1px dashed #777;text-align:left;overflow-wrap:anywhere}
+ td:last-child,th:last-child{text-align:right;white-space:nowrap}
+ .total{font-weight:bold;font-size:15px;text-align:right;margin-top:8px;border-top:1px solid #000;padding-top:6px}
+ small{font-size:10px}
+ .center{text-align:center}
+ @media print{body{width:48mm}}
+ </style></head><body>${html}<script>window.onload=()=>{window.focus();window.print()}<\/script></body></html>`);
+ w.document.close()
+}
+function printKitchen(){let t=table();printDoc(`<h2>Espetinho das Meninas</h2><h3>PEDIDO — ${esc(t.name)}</h3><p>${new Date().toLocaleString('pt-BR')}</p><table>${t.items.map(x=>`<tr><td><b>${x.qty}x</b> ${esc(x.name)}${x.note?`<br><small>${esc(x.note)}</small>`:''}</td></tr>`).join('')}</table>`)}
+function printReceipt(s){printDoc(`<h2>Espetinho das Meninas</h2><p style="text-align:center">Comprovante de consumo</p><p>${esc(s.table)} · ${s.date} ${s.time}</p><table><thead><tr><th>Produto</th><th>Qtd.</th><th>Unit.</th><th>Total</th></tr></thead><tbody>${s.items.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.qty}</td><td>${money(x.price)}</td><td>${money(x.qty*x.price)}</td></tr>`).join('')}</tbody></table><p>Subtotal: ${money(s.subtotal)}<br>Desconto: ${money(s.discount)}<br>Taxa: ${money(s.service)}<br>Pagamento: ${esc(s.payment)}</p><div class="total">TOTAL: ${money(s.total)}</div><p style="text-align:center">Obrigado pela preferência!</p>`)}
+function printReport(){let date=document.getElementById('reportDate').value||today(),sales=data.sales.filter(s=>s.date===date),total=sales.reduce((a,s)=>a+s.total,0);printDoc(`<h2>${esc(data.business)}</h2><h3>Relatório de faturamento — ${date}</h3><table><tr><th>Hora</th><th>Mesa</th><th>Pagamento</th><th>Total</th></tr>${sales.map(s=>`<tr><td>${s.time}</td><td>${esc(s.table)}</td><td>${esc(s.payment)}</td><td>${money(s.total)}</td></tr>`).join('')}</table><div class="total">TOTAL DO DIA: ${money(total)}</div><p>Quantidade de comandas: ${sales.length}</p>`)}
+function exportCSV(){let date=document.getElementById('reportDate').value||today(),sales=data.sales.filter(s=>s.date===date),rows=[['Data','Hora','Mesa','Pagamento','Subtotal','Desconto','Taxa','Total'],...sales.map(s=>[s.date,s.time,s.table,s.payment,s.subtotal,s.discount,s.service,s.total])];let csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='faturamento-'+date+'.csv';a.click();URL.revokeObjectURL(a.href)}
+function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='backup-comanda-facil.json';a.click();URL.revokeObjectURL(a.href)}
+function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!d.tables||!d.products||!d.sales)throw 0;if(confirm('Restaurar backup? Os dados atuais serão substituídos.')){data=d;save();location.reload()}}catch{alert('Arquivo de backup inválido.')}};r.readAsText(f)}
+function saveSettings(){data.business=document.getElementById('businessName').value.trim()||'Meu Bar e Restaurante';let n=Math.max(1,Math.min(100,Number(document.getElementById('tableCount').value)||data.tables.length));while(data.tables.length<n){let id=Math.max(0,...data.tables.map(t=>t.id))+1;data.tables.push({id,name:'Mesa '+id,items:[]})}while(data.tables.length>n){let t=data.tables[data.tables.length-1];if(t.items.length){alert('Feche ou transfira os pedidos antes de reduzir a quantidade de mesas.');break}data.tables.pop()}save();alert('Configurações salvas.');renderTables()}
+document.getElementById('businessName').value=data.business;document.getElementById('tableCount').value=data.tables.length;document.getElementById('reportDate').value=today();renderTables();
+</script>
+</body></html>
